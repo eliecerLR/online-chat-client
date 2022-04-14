@@ -1,23 +1,43 @@
-import logo from './logo.svg';
 import './App.css';
+import { io } from 'socket.io-client';
+import { useState } from 'react';
+import Chat from './components/Chat';
+import Join from './components/Join';
+
+const socket = io.connect('http://chat-api-online.herokuapp.com')
 
 function App() {
+  const [user, setUser] = useState('')
+  const [room, setRoom] = useState('')
+  const [isConnected, setIsConnected] = useState(false)
+
+  const handleUsername = (event) => setUser(event.target.value)
+  const handleRoom = (event) => setRoom(event.target.value)
+
+  const joinRoom = (event) => {
+    event.preventDefault();
+    if (user !== '' && room !== '') {
+      socket.emit('join', room)
+      setIsConnected(true);
+    }
+  }
+
   return (
     <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+      {
+        !isConnected &&
+        <>
+          <Join joinRoom={joinRoom}
+            user={handleUsername}
+            room={handleRoom} />
+        </>
+      }
+
+      {
+        isConnected &&
+
+        <Chat socket={socket} username={user} room={room} />
+      }
     </div>
   );
 }
